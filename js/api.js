@@ -67,21 +67,3 @@ document.getElementById('searchBtn')?.addEventListener('click', async () => {
         alert(error.message);
     }
 });
-test('8. Deve capturar e formatar corretamente os horários astronômicos (Nascer e Pôr do Sol)', async () => {
-    global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({
-            current_weather: { temperature: 22 },
-            daily: {
-                sunrise: ["2026-04-12T06:10"],
-                sunset: ["2026-04-12T18:05"]
-            }
-        })
-    });
-
-    const resultado = await buscarClima(-23.55, -46.63);
-    
-    // Validando se os novos campos estão chegando formatados
-    expect(resultado.nascerSol).toBe("06:10");
-    expect(resultado.porSol).toBe("18:05");
-});
