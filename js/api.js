@@ -1,40 +1,69 @@
-// Função para buscar os dados conforme a tabela da Open-Meteo
+// Dicionário de ícones e descrições (Requisito 2.1)
+const weatherMap = {
+    0: { desc: "Céu Limpo", icon: "wi-day-sunny" },
+    1: { desc: "Principalmente Limpo", icon: "wi-day-cloudy" },
+    2: { desc: "Parcialmente Nublado", icon: "wi-day-cloudy" },
+    3: { desc: "Nublado", icon: "wi-cloudy" },
+    45: { desc: "Nevoeiro", icon: "wi-fog" },
+    // Adicionamos mais conforme a necessidade
+};
+
 const buscarClima = async () => {
-    // Coordenadas de exemplo (São Paulo) conforme o guia
-    const lat = -23.55;
-    const lon = -46.63;
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+    const cidade = document.getElementById("cityInput").value;
+    
+    if (!cidade) {
+        alert("Digite o nome de uma cidade, Márcia!");
+        return;
+    }
 
     try {
-        const resposta = await fetch(url);
-        const dados = await resposta.json();
-        
-        // Extraindo os dados da tabela que você enviou
-        const { temperature, windspeed, weathercode, time } = dados.current_weather;
+        // 1. GEOCODIFICAÇÃO: Transforma nome em Lat/Lon
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade)}&count=1&language=pt&format=json`;
+        const geoRes = await fetch(geoUrl);
+        const geoData = await geoRes.json();
 
-        // Exibindo no console para provar que a Tarefa 1 está capturando os dados
-        console.log(`Temperatura: ${temperature}°C`);
-        console.log(`Vento: ${windspeed}km/h`);
-        console.log(`Código do Tempo: ${weathercode}`);
-        console.log(`Horário da Medição: ${time}`);
+        // Tratamento de erro: Cidade não encontrada
+        if (!geoData.results) {
+            throw new Error("Cidade não encontrada. Verifique a grafia!");
+        }
 
-        exibirResultado(temperature, windspeed);
+        const { latitude, longitude, name } = geoData.results[0];
+
+        // 2. BUSCA DO CLIMA: Usa as coordenadas obtidas
+        const climaUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true&timezone=auto`;
+        const climaRes = await fetch(climaUrl);
+        const climaData = await climaRes.json();
+
+        const { temperature, weathercode, is_day } = climaData.current_weather;
+
+        atualizarInterface(name, temperature, weathercode, is_day);
+
     } catch (erro) {
-        console.error("Erro ao processar a etapa 1:", erro);
+        alert(erro.message);
+        console.error("Erro na busca:", erro);
     }
 };
 
-// Função simples para cumprir o requisito de exibição inicial
-const exibirResultado = (temp, vento) => {
-    const display = document.getElementById("weatherResult");
-    display.innerHTML = `
-        <div class="result-box">
-            <h2>${temp}°C</h2>
-            <p>Vento: ${vento} km/h</p>
-        </div>
-    `;
-    display.hidden = false;
+const atualizarInterface = (nome, temp, code, isDay) => {
+    // 3. DATA COMPLETA (Requisito 2.1)
+    const dataFormatada = new Date().toLocaleDateString('pt-BR', {
+        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+    });
+
+    // 4. TROCA DE FUNDO (Dia/Noite)
+    document.body.className = isDay ? "bg-dia" : "bg-noite";
+
+    const condicao = weatherMap[code] || { desc: "Clima variado", icon: "wi-cloud" };
+
+    // Injetando no HTML
+    document.getElementById("cityName").innerText = nome;
+    document.getElementById("tempDisplay").innerText = `${Math.round(temp)}°`;
+    document.getElementById("condition").innerText = condicao.desc;
+    document.getElementById("dateInfo").innerText = dataFormatada;
+    
+    // Ícone dinâmico
+    const weatherResult = document.getElementById("weatherResult");
+    weatherResult.innerHTML = `<i class="wi ${condicao.icon}"></i>`;
 };
 
-// Evento do botão (ID do seu index.html)
 document.getElementById("searchBtn").addEventListener("click", buscarClima);
