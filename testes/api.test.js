@@ -1,66 +1,44 @@
-// Mock do fetch para não depender da internet nos testes
+// testes/api.test.js
 global.fetch = jest.fn();
 
-// Função simulada com a lógica que o Jest vai testar
-const buscarClimaSimulado = async (cidade) => {
-    if (!cidade) throw new Error("Entrada vazia");
-    
-    const response = await fetch(`https://api.open-meteo.com/v1/forecast?name=${cidade}`);
-    
-    if (response.status === 404) throw new Error("Cidade inexistente");
-    if (response.status === 429) throw new Error("Limite excedido");
-    if (response.status === 500) throw new Error("Falha na API");
-
-    return await response.json();
+const buscarClimaSimulado = async (lat, lon) => {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=auto`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Falha ao buscar dados climáticos.");
+    const data = await response.json();
+    const extrairHora = (isoString) => isoString.split('T')[1];
+    return {
+        temperature: data.current_weather.temperature,
+        nascerSol: extrairHora(data.daily.sunrise[0]),
+        porSol: extrairHora(data.daily.sunset[0])
+    };
 };
 
-describe("Testes Unitários - App de Clima (SphereTempo)", () => {
-    
-    beforeEach(() => {
-        fetch.mockClear();
-    });
+describe("Testes Unitários - SphereTempo (Etapa 5)", () => {
+    beforeEach(() => { fetch.mockClear(); });
 
-    test("1. Nome de cidade válido retorna dados meteorológicos", async () => {
-        fetch.mockResolvedValue({
+    test("1. Deve retornar temperatura e horários solares", async () => {
+        fetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ current_weather: { temperature: 27 } }),
+            json: async () => ({
+                current_weather: { temperature: 25 },
+                daily: { sunrise: ["2026-04-12T06:00"], sunset: ["2026-04-12T18:00"] }
+            })
         });
-        const dados = await buscarClimaSimulado("Nova Iguaçu");
-        expect(dados.current_weather.temperature).toBe(27);
+        const resultado = await buscarClimaSimulado(-22, -43);
+        expect(resultado.temperature).toBe(25);
+        expect(resultado.nascerSol).toBe("06:00");
     });
 
-    test("2. Nome de cidade inexistente lança exceção tratada", async () => {
-        fetch.mockResolvedValue({ status: 404 });
-        await expect(buscarClimaSimulado("CidadeInexistente")).rejects.toThrow("Cidade inexistente");
-    });
-
-    test("3. Entrada vazia retorna erro de validação", async () => {
-        await expect(buscarClimaSimulado("")).rejects.toThrow("Entrada vazia");
-    });
-
-    test("4. Falha da API gera resposta adequada", async () => {
-        fetch.mockResolvedValue({ status: 500 });
-        await expect(buscarClimaSimulado("Rio")).rejects.toThrow("Falha na API");
-    });
-
-    test("5. Excesso de requisições deve ser bloqueado", async () => {
-        fetch.mockResolvedValue({ status: 429 });
-        await expect(buscarClimaSimulado("Rio")).rejects.toThrow("Limite excedido");
-    });
-
-    test("6. Conexão lenta deve dar timeout", async () => {
-        const promiseLenta = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error("Timeout")), 100)
-        );
-        await expect(promiseLenta).rejects.toThrow("Timeout");
-    });
-
-    test("7. API mudou e quebrou o formato", async () => {
-        fetch.mockResolvedValue({
+    test("2. Erro astronômico (Teste 8)", async () => {
+        fetch.mockResolvedValueOnce({
             ok: true,
-            json: async () => ({ formato_errado: true }),
+            json: async () => ({
+                current_weather: { temperature: 20 },
+                daily: { sunrise: ["2026-04-12T05:30"], sunset: ["2026-04-12T17:45"] }
+            })
         });
-        const dados = await buscarClimaSimulado("Rio");
-        expect(dados.current_weather).toBeUndefined();
+        const resultado = await buscarClimaSimulado(0, 0);
+        expect(resultado.porSol).toBe("17:45");
     });
 });

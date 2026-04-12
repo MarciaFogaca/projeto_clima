@@ -27,36 +27,61 @@ async function buscarCoordenadas(cidade) {
 }
 
 /**
- * Busca os dados meteorológicos atuais com base em coordenadas.
- * * @async
- * @param {number} lat - Latitude da localização.
- * @param {number} lon - Longitude da localização.
- * @returns {Promise<Object>} Dados de temperatura e código de clima.
- * @throws {Error} Lança um erro se a requisição à API falhar.
+ * Busca os dados meteorológicos atuais e astronômicos (nascer/pôr do sol).
  */
 async function buscarClima(lat, lon) {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+    // Adicionamos &daily=sunrise,sunset&timezone=auto para a API enviar os dados do sol
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=auto`;
     const response = await fetch(url);
     
     if (!response.ok) throw new Error("Falha ao buscar dados climáticos.");
+    const data = await response.json();
     
-    return await response.json();
+    const extrairHora = (isoString) => isoString.split('T')[1];
+
+    return {
+        temperature: data.current_weather.temperature,
+        nascerSol: extrairHora(data.daily.sunrise[0]),
+        porSol: extrairHora(data.daily.sunset[0])
+    };
 }
 
 // Lógica de manipulação do DOM (Interface)
 document.getElementById('searchBtn')?.addEventListener('click', async () => {
     const cityInput = document.getElementById('cityInput').value;
-    const feedback = document.getElementById('feedback'); // Opcional: para mostrar erros na tela
 
     try {
         const coords = await buscarCoordenadas(cityInput);
         const weather = await buscarClima(coords.latitude, coords.longitude);
         
-        // Atualiza a tela (Exemplo)
+        // Atualização dos elementos na tela
         document.getElementById('cityName').textContent = coords.name;
-        document.getElementById('tempDisplay').textContent = `${Math.round(weather.current_weather.temperature)}°`;
+        document.getElementById('tempDisplay').textContent = `${Math.round(weather.temperature)}°`;
+        
+        // Novos campos da Etapa 5
+        document.getElementById('sunriseTime').textContent = weather.nascerSol;
+        document.getElementById('sunsetTime').textContent = weather.porSol;
+
     } catch (error) {
         console.error(error.message);
         alert(error.message);
     }
+});
+test('8. Deve capturar e formatar corretamente os horários astronômicos (Nascer e Pôr do Sol)', async () => {
+    global.fetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+            current_weather: { temperature: 22 },
+            daily: {
+                sunrise: ["2026-04-12T06:10"],
+                sunset: ["2026-04-12T18:05"]
+            }
+        })
+    });
+
+    const resultado = await buscarClima(-23.55, -46.63);
+    
+    // Validando se os novos campos estão chegando formatados
+    expect(resultado.nascerSol).toBe("06:10");
+    expect(resultado.porSol).toBe("18:05");
 });
