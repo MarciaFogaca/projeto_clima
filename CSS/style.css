@@ -1,77 +1,129 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+/* Reset Profissional */
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
-}
-
-/* Fundo que muda de cor (Requisito 2.1) */
-body.bg-dia {
-    background: linear-gradient(180deg, #48319D 0%, #1C1B33 100%);
-}
-
-body.bg-noite {
-    background: linear-gradient(180deg, #08080A 0%, #1C1B33 100%);
-}
-
+/* Fundo Base - Responsivo no preenchimento */
 body {
-    background: #2E335A; /* Cor padrão */
-    height: 100vh;
+    background: radial-gradient(circle at top, #2e335a, #1c1b33);
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: white;
+    min-height: 100vh;
+    padding: 10px; /* Margem mínima para não encostar na borda do celular */
+    transition: background 0.5s ease;
 }
 
+/* O Card Estilo "Glass" - A mágica da responsividade está aqui */
 .glass-card {
-    background: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(180deg, rgba(46, 51, 90, 0.8) 0%, rgba(28, 27, 51, 0.9) 100%);
     backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 40px;
-    padding: 2.5rem;
-    width: 350px;
-    text-align: center;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-}
-
-h2#cityName { font-size: 1.8rem; font-weight: 400; }
-h1#tempDisplay { font-size: 5rem; font-weight: 200; margin: 0.5rem 0; }
-p#condition { font-size: 1.1rem; opacity: 0.8; margin-bottom: 1rem; }
-p#dateInfo { font-size: 0.8rem; opacity: 0.6; }
-
-.search-section {
-    margin-top: 2rem;
-    display: flex;
-    gap: 8px;
-}
-
-input {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 10px;
+    border-radius: 40px;
+    
+    /* Adaptabilidade Total */
+    width: 100%;           /* Ocupa tudo em telas pequenas */
+    max-width: 380px;      /* Não deixa ficar gigante no PC */
+    min-height: 750px;     /* Altura mínima segura */
+    
+    padding: 30px 20px;
     color: white;
-    outline: none;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    transition: all 0.5s ease;
 }
 
-button {
-    background: white;
+/* Header e Temperatura */
+.header-main { text-align: center; margin-bottom: 20px; }
+.temp-box { display: flex; align-items: center; justify-content: center; gap: 15px; margin: 15px 0; }
+.temp-box h1 { font-size: clamp(3rem, 15vw, 4.5rem); font-weight: 200; } /* Fonte diminui conforme a tela */
+.temp-box i { font-size: clamp(2rem, 10vw, 3rem); }
+
+/* Busca */
+.search-box { display: flex; gap: 8px; margin-bottom: 25px; width: 100%; }
+.search-box input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     border-radius: 12px;
-    padding: 10px 15px;
-    cursor: pointer;
-    font-size: 1.1rem;
-    transition: 0.3s;
+    padding: 12px 15px;
+    color: white;
+    outline: none;
+    width: 100%;
+}
+.search-box button { background: white; border: none; border-radius: 12px; padding: 0 15px; cursor: pointer; }
+
+/* Grid de Detalhes - Ajuste Dinâmico */
+.details-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 30px;
 }
 
-button:hover { transform: scale(1.1); }
+.detail-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px 5px;
+    border-radius: 15px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.detail-item i { font-size: 1.3rem; margin-bottom: 5px; }
+.detail-item span { font-size: 0.65rem; opacity: 0.7; }
+.detail-item strong { font-size: 0.9rem; }
 
-/* Tamanho do ícone de clima */
-.wi {
-    font-size: 3.5rem;
-    margin: 1.5rem 0;
-    display: block;
+/* Previsão */
+.forecast-area h3 { font-size: 1rem; margin-bottom: 15px; }
+.forecast-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 15px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 15px;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+/* Astro bar */
+.astro-bar {
+    display: flex;
+    justify-content: space-around;
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+.astro-unit { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
+
+/* Créditos Externos */
+.app-credits {
+    margin: 20px 0;
+    text-align: center;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.6);
+    line-height: 1.6;
+    max-width: 350px;
+}
+
+/* --- MEDIA QUERIES PARA TODOS OS TAMANHOS --- */
+
+/* Celulares muito pequenos (ex: iPhone SE, Jelly) */
+@media (max-width: 350px) {
+    .glass-card { padding: 20px 15px; border-radius: 30px; }
+    .details-grid { gap: 5px; }
+    .detail-item strong { font-size: 0.75rem; }
+    .temp-box h1 { font-size: 2.8rem; }
+}
+
+/* Tablets e iPads */
+@media (min-width: 600px) and (max-width: 1024px) {
+    body { padding: 40px; }
+    .glass-card { max-width: 450px; } /* Dá um pouco mais de espaço no tablet */
+}
+
+/* Desktop 4K ou Telas Grandes */
+@media (min-width: 1900px) {
+    .glass-card { transform: scale(1.1); } /* Aumenta um pouco para não sumir na tela gigante */
 }

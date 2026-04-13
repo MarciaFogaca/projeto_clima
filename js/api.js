@@ -1,69 +1,31 @@
-/**
- * @fileoverview Funções de integração com a API Open-Meteo para busca de clima e geocodificação.
- */
+// js/api.js
 
-/**
- * Busca as coordenadas (latitude e longitude) de uma cidade.
- * * @async
- * @param {string} cidade - O nome da cidade a ser pesquisada.
- * @returns {Promise<Object>} Um objeto contendo latitude, longitude e nome da cidade.
- * @throws {Error} Lança um erro se a cidade não for encontrada ou a entrada estiver vazia.
- * @example
- * const local = await buscarCoordenadas("Nova Iguaçu");
- */
-async function buscarCoordenadas(cidade) {
-    if (!cidade.trim()) throw new Error("A entrada não pode estar vazia.");
+// Tabela de condições climáticas (WMO) exigida para converter os códigos da API
+export const WMO = {
+    0: { desc: 'Céu limpo', icone: 'wi wi-day-sunny' },
+    1: { desc: 'Principalmente limpo', icone: 'wi wi-day-cloudy' },
+    2: { desc: 'Parcialmente nublado', icone: 'wi wi-day-cloudy' },
+    3: { desc: 'Nublado', icone: 'wi wi-cloudy' },
+    45: { desc: 'Neblina', icone: 'wi wi-fog' },
+    51: { desc: 'Garoa leve', icone: 'wi wi-sprinkle' },
+    61: { desc: 'Chuva leve', icone: 'wi wi-rain' },
+    63: { desc: 'Chuva moderada', icone: 'wi wi-rain' },
+    80: { desc: 'Pancadas de chuva', icone: 'wi wi-showers' },
+    95: { desc: 'Tempestade', icone: 'wi wi-thunderstorm' }
+};
 
+export async function buscarCoordenadas(cidade) {
     const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cidade)}&count=1&language=pt&format=json`;
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!data.results || data.results.length === 0) {
-        throw new Error(`Cidade "${cidade}" não encontrada.`);
-    }
-
-    const { latitude, longitude, name } = data.results[0];
-    return { latitude, longitude, name };
+    const resposta = await fetch(url);
+    if (!resposta.ok) throw new Error('Erro na rede ao buscar cidade.');
+    const dados = await resposta.json();
+    if (!dados.results || dados.results.length === 0) throw new Error('Cidade não encontrada.');
+    return dados.results[0];
 }
 
-/**
- * Busca os dados meteorológicos atuais e astronômicos (nascer/pôr do sol).
- */
-async function buscarClima(lat, lon) {
-    // Adicionamos &daily=sunrise,sunset&timezone=auto para a API enviar os dados do sol
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&daily=sunrise,sunset&timezone=auto`;
-    const response = await fetch(url);
-    
-    if (!response.ok) throw new Error("Falha ao buscar dados climáticos.");
-    const data = await response.json();
-    
-    const extrairHora = (isoString) => isoString.split('T')[1];
-
-    return {
-        temperature: data.current_weather.temperature,
-        nascerSol: extrairHora(data.daily.sunrise[0]),
-        porSol: extrairHora(data.daily.sunset[0])
-    };
+export async function buscarClima(lat, lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=auto`;
+    const resposta = await fetch(url);
+    if (!resposta.ok) throw new Error('Erro ao buscar dados do clima.');
+    return await resposta.json();
 }
-
-// Lógica de manipulação do DOM (Interface)
-document.getElementById('searchBtn')?.addEventListener('click', async () => {
-    const cityInput = document.getElementById('cityInput').value;
-
-    try {
-        const coords = await buscarCoordenadas(cityInput);
-        const weather = await buscarClima(coords.latitude, coords.longitude);
-        
-        // Atualização dos elementos na tela
-        document.getElementById('cityName').textContent = coords.name;
-        document.getElementById('tempDisplay').textContent = `${Math.round(weather.temperature)}°`;
-        
-        // Novos campos da Etapa 5
-        document.getElementById('sunriseTime').textContent = weather.nascerSol;
-        document.getElementById('sunsetTime').textContent = weather.porSol;
-
-    } catch (error) {
-        console.error(error.message);
-        alert(error.message);
-    }
-});

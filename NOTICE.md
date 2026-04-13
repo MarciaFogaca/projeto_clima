@@ -22,3 +22,5 @@ Este projeto utiliza as seguintes bibliotecas e serviços de código aberto:
 - **Cloudflare CDN** para entrega de assets estáticos.
 - **Jest** para execução de testes unitários.
   - Licença: MIT
+
+  

@@ -4,31 +4,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SphereTempo</title>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.12/css/weather-icons.min.css">
-    
     <link rel="stylesheet" href="./CSS/style.css">
 </head>
-<body>
-
-    <div class="app-background">
+<body class="bg-noite">
+    <div class="app-container">
         <div class="glass-card">
-            <header>
-                <h2 id="cityName">SphereTempo</h2> 
-                <h1 id="tempDisplay">--°</h1>
-                <p id="condition">Busque uma cidade</p>
-                <p id="dateInfo" style="font-size: 0.8rem; margin-top: 10px;"></p>
+            <header class="header-main">
+                <h2 id="cityName">SphereTempo</h2>
+                <div class="temp-box">
+                    <i id="mainIcon" class="wi wi-night-alt-cloudy"></i>
+                    <h1 id="tempDisplay">--°C</h1>
+                </div>
+                <p id="condition">Consulte o clima</p>
             </header>
 
-            <section class="search-section">
-                <input type="text" id="cityInput" placeholder="Busque uma cidade...">
+            <div class="search-box">
+                <input type="text" id="cityInput" placeholder="Ex: Nova Iguaçu...">
                 <button id="searchBtn">🔍</button>
+            </div>
+
+            <div class="details-grid">
+                <div class="detail-item">
+                    <i class="wi wi-humidity"></i>
+                    <span>Umidade</span>
+                    <strong id="humidity">--%</strong>
+                </div>
+                <div class="detail-item">
+                    <i class="wi wi-strong-wind"></i>
+                    <span>Vento</span>
+                    <strong id="windSpeed">--km/h</strong>
+                </div>
+                <div class="detail-item">
+                    <i class="wi wi-thermometer"></i>
+                    <span>Sensação</span>
+                    <strong id="apparentTemp">--°</strong>
+                </div>
+            </div>
+
+            <section class="forecast-area">
+                <h3>Previsão Semanal</h3>
+                <div id="forecastList">
+                    </div>
             </section>
 
-            <div id="weatherResult"></div>
+            <footer class="astro-bar">
+                <div class="astro-unit">
+                    <i class="wi wi-sunrise"></i>
+                    <span id="sunriseTime">--:--</span>
+                </div>
+                <div class="astro-unit">
+                    <i class="wi wi-sunset"></i>
+                    <span id="sunsetTime">--:--</span>
+                </div>
+            </footer>
         </div>
     </div>
 
-    <script type="module" src="./js/api.js"></script>
+    <footer class="app-credits">
+        <p>🔒 Esta aplicação não coleta ou armazena dados pessoais.</p>
+        <p>📊 Dados: <a href="https://open-meteo.com/" target="_blank">Open-Meteo.com</a> (CC BY 4.0).</p>
+        <p>👩‍💻 Desenvolvido por <strong>Márcia Telles Fogaça</strong></p>
+    </footer>
+<script type="module" src="./js/main.js"></script>
 </body>
 </html>
